@@ -5,8 +5,6 @@ import Random from "@reactioncommerce/random";
 import Bunyan2Loggly from "./loggly";
 import { getLogDNAStream } from "./logdna";
 
-import logger from "logger";
-
 // configure bunyan logging module for reaction server
 // See: https://github.com/trentm/node-bunyan#levels
 const levels = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"];
@@ -79,10 +77,10 @@ const Logger = Bunyan.createLogger({
 Logger.bunyan = Bunyan;
 Logger.bunyanFormat = BunyanFormat;
 
-export const expressMiddleware = function ({
+export const LoggerMiddleware = function ({
   route = "graphql",
   stage = "first",
-}) {
+} = {}) {
   const middlewareFunction = (context) => async (req, res, next) => {
     const { body } = req;
     const { variables, operationName } = body || {};
