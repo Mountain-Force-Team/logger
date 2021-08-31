@@ -1,7 +1,11 @@
 import Bunyan from "bunyan";
 import BunyanFormat from "bunyan-format";
-import Bunyan2Loggly from "./loggly";
+import Random from "@reactioncommerce/random";
 
+import Bunyan2Loggly from "./loggly";
+import { getLogDNAStream } from "./logdna";
+
+import logger from "logger";
 
 // configure bunyan logging module for reaction server
 // See: https://github.com/trentm/node-bunyan#levels
@@ -22,10 +26,12 @@ if (!levels.includes(level)) {
 }
 
 // default console config (stdout)
-const streams = [{
-  level,
-  stream: BunyanFormat({ outputMode })
-}];
+const streams = [
+  {
+    level,
+    stream: BunyanFormat({ outputMode }),
+  },
+];
 
 // Loggly config (only used if configured)
 const logglyToken = process.env.LOGGLY_TOKEN;
@@ -35,18 +41,36 @@ if (logglyToken && logglySubdomain) {
   const logglyStream = {
     type: "raw",
     level: process.env.LOGGLY_LOG_LEVEL || "DEBUG",
-    stream: new Bunyan2Loggly({
-      token: logglyToken,
-      subdomain: logglySubdomain
-    }, process.env.LOGGLY_BUFFER_LENGTH || 1)
+    stream: new Bunyan2Loggly(
+      {
+        token: logglyToken,
+        subdomain: logglySubdomain,
+      },
+      process.env.LOGGLY_BUFFER_LENGTH || 1
+    ),
   };
   streams.push(logglyStream);
+}
+
+// LogDNA
+const logDnaApiKey = process.env.LOGDNA_API_KEY;
+const logDnaAppName = process.env.LOGDNA_APP_NAME;
+const logDnaHostname = process.env.LOGDNA_HOSTNAME;
+
+if (logDnaApiKey) {
+  const logDNAStream = getLogDNAStream({
+    key: logDnaApiKey,
+    app: logDnaAppName,
+    hostname: logDnaHostname,
+  });
+  streams.push(logDNAStream);
 }
 
 // create default logger instance
 const Logger = Bunyan.createLogger({
   name: process.env.REACTION_LOGGER_NAME || "Reaction",
-  streams
+  level,
+  streams,
 });
 
 // Export bunyan so users can create their own loggers from scratch if needed.
@@ -54,5 +78,49 @@ const Logger = Bunyan.createLogger({
 // exports, so we set these as properties of the default export instead.
 Logger.bunyan = Bunyan;
 Logger.bunyanFormat = BunyanFormat;
+
+export const expressMiddleware = function ({
+  route = "graphql",
+  stage = "first",
+}) {
+  const middlewareFunction = (context) => async (req, res, next) => {
+    const { body } = req;
+    const { variables, operationName } = body || {};
+
+    const reqId = Random.id();
+    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const lang = req.headers["languages"];
+
+    const meta = {
+      reqId,
+      ip,
+      lang,
+    };
+
+    const startTime = new Date().getTime();
+    function afterResponse() {
+      res.removeListener("finish", afterResponse);
+      res.removeListener("close", afterResponse);
+
+      const responseTime = new Date().getTime() - startTime;
+
+      Logger.info(
+        `${operationName} - ${res.statusCode} ${responseTime.toFixed(0)}ms`,
+        { ...meta, responseTime, body: { variables } }
+      );
+    }
+
+    res.on("finish", afterResponse);
+    res.on("close", afterResponse);
+
+    next();
+  };
+
+  return {
+    route,
+    stage,
+    fn: middlewareFunction,
+  };
+};
 
 export default Logger;

@@ -1,0 +1,36 @@
+{
+  "extends": ["airbnb-base", "eslint-config-prettier"],
+  "plugins": ["import"],
+  "env": {
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
+  "rules": {
+    "no-underscore-dangle": "off",
+    "class-methods-use-this": "off",
+    "max-len": "off",
+    "no-restricted-syntax": "off",
+    "no-use-before-define": ["error", { "functions": false }],
+    "no-param-reassign": "off",
+    "no-await-in-loop": "off",
+    "func-names": "off",
+    "import/prefer-default-export": "off",
+    "arrow-body-style": "off",
+    "import/no-unresolved": [
+      "error",
+      {
+        "ignore": [
+          "^#config",
+          "^#controllers",
+          "^#middleware",
+          "^#models",
+          "^#services",
+          "^#utils"
+        ]
+      }
+    ],
+    "import/extensions": ["error", "never"]
+  }
+}
