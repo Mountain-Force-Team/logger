@@ -77,7 +77,7 @@ const Logger = Bunyan.createLogger({
 Logger.bunyan = Bunyan;
 Logger.bunyanFormat = BunyanFormat;
 
-export const LoggerMiddleware = function ({
+Logger.createLoggerMiddleware = function ({
   route = "graphql",
   stage = "first",
 } = {}) {
