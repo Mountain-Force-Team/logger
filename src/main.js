@@ -77,41 +77,43 @@ const Logger = Bunyan.createLogger({
 Logger.bunyan = Bunyan;
 Logger.bunyanFormat = BunyanFormat;
 
-Logger.createLoggerMiddleware = function ({
+Logger.LoggerMiddleware = function ({
   route = "graphql",
   stage = "first",
 } = {}) {
-  const middlewareFunction = (context) => async (req, res, next) => {
-    const { body } = req;
-    const { variables, operationName } = body || {};
+  const middlewareFunction = (context) => {
+    return (req, res, next) => {
+      const { body } = req;
+      const { variables, operationName } = body || {};
 
-    const reqId = Random.id();
-    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-    const lang = req.headers["languages"];
+      const reqId = Random.id();
+      const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+      const lang = req.headers["languages"];
 
-    const meta = {
-      reqId,
-      ip,
-      lang,
+      const meta = {
+        reqId,
+        ip,
+        lang,
+      };
+
+      const startTime = new Date().getTime();
+      function afterResponse() {
+        res.removeListener("finish", afterResponse);
+        res.removeListener("close", afterResponse);
+
+        const responseTime = new Date().getTime() - startTime;
+
+        Logger.info(
+          `${operationName} - ${res.statusCode} ${responseTime.toFixed(0)}ms`,
+          { ...meta, responseTime, body: { variables } }
+        );
+      }
+
+      res.on("finish", afterResponse);
+      res.on("close", afterResponse);
+
+      next();
     };
-
-    const startTime = new Date().getTime();
-    function afterResponse() {
-      res.removeListener("finish", afterResponse);
-      res.removeListener("close", afterResponse);
-
-      const responseTime = new Date().getTime() - startTime;
-
-      Logger.info(
-        `${operationName} - ${res.statusCode} ${responseTime.toFixed(0)}ms`,
-        { ...meta, responseTime, body: { variables } }
-      );
-    }
-
-    res.on("finish", afterResponse);
-    res.on("close", afterResponse);
-
-    next();
   };
 
   return {
