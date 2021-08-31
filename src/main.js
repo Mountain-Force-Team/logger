@@ -77,6 +77,6 @@ const Logger = Bunyan.createLogger({
 Logger.bunyan = Bunyan;
 Logger.bunyanFormat = BunyanFormat;
 
-Logger.LoggerMiddleware = LoggerMiddleware;
+Logger.LoggerMiddleware = LoggerMiddleware(Logger);
 
 export default Logger;
