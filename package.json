@@ -7,7 +7,8 @@
     "build": "rimraf ./dist && babel src --out-dir ./dist",
     "lint": "eslint ./src",
     "lintfix": "eslint ./src --fix",
-    "watch": "watch 'npm run build' src"
+    "watch": "watch 'npm run build' src",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
