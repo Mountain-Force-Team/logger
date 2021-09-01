@@ -8,7 +8,8 @@
     "lint": "eslint ./src",
     "lintfix": "eslint ./src --fix",
     "watch": "watch 'npm run build' src",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepack": "yarn run build"
   },
   "repository": {
     "type": "git",
