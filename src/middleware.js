@@ -11,12 +11,13 @@ const LoggerMiddleware =
         const reqId = Random.id();
         const ip =
           req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-        const lang = req.headers["languages"];
+        const lang = req.headers["language"];
 
         const meta = {
           reqId,
           ip,
           lang,
+          userId: req.user?._id,
         };
 
         const startTime = new Date().getTime();
