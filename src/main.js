@@ -3,7 +3,6 @@ import BunyanFormat from "bunyan-format";
 
 import Bunyan2Loggly from "./loggly";
 import { getLogDNAStream } from "./logdna";
-import LoggerMiddleware from "./middleware";
 
 // configure bunyan logging module for reaction server
 // See: https://github.com/trentm/node-bunyan#levels
@@ -76,7 +75,5 @@ const Logger = Bunyan.createLogger({
 // exports, so we set these as properties of the default export instead.
 Logger.bunyan = Bunyan;
 Logger.bunyanFormat = BunyanFormat;
-
-Logger.LoggerMiddleware = LoggerMiddleware(Logger);
 
 export default Logger;
