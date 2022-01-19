@@ -71,7 +71,7 @@ const Logger = Bunyan.createLogger({
 });
 
 Logger.on("error", (error) => {
-  console.log(error);
+  console.error(error);
 });
 
 // Export bunyan so users can create their own loggers from scratch if needed.
