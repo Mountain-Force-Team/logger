@@ -70,6 +70,10 @@ const Logger = Bunyan.createLogger({
   streams,
 });
 
+Logger.on("error", (error) => {
+  console.log(error);
+});
+
 // Export bunyan so users can create their own loggers from scratch if needed.
 // In order to be compatible with Node ES modules, we can't have named CommonJS
 // exports, so we set these as properties of the default export instead.
